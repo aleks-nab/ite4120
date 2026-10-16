@@ -103,6 +103,32 @@ mapper turns them into the component's own model. Register types are mapped to
 `restriction_type.code`; an unknown register type is shown with its own name
 and legal basis and no rule.
 
+**As implemented** *(settled in session 3)*:
+
+- **Check answer:** `{cadastralCode, plotAreaM2, registerComplete, restrictions[]}`; each
+  restriction is `{restrictionTypeCode, restrictionName, restrictingObjectOwner, legalBasis,
+  affectedAreaM2, rule}`, named after the `pre_check_restriction` columns. `rule` is the full
+  rule valid today, or `null`. When rule periods for a type overlap, the rule that started
+  latest wins.
+- **Wire shape of the imitated register:** a plot is `{katastritunnus, pindala,
+  varjatudKitsendusi, kitsendused[]}`. `pindala` is the plot area. `varjatudKitsendusi = true`
+  means the register hides some restrictions, so we answer `registerComplete = false`.
+  Each entry of `kitsendused` carries the five fields above.
+- **Type mapping (`nahtuseLiik` → `restriction_type.code`):** ELEKTRIPAIGALDISE_KAITSEVOOND →
+  POWER_LINE_ZONE, GAASIPAIGALDISE_KAITSEVOOND → GAS_PIPELINE_ZONE, TEE_KAITSEVOOND →
+  ROAD_PROTECTION_ZONE, RANNA_EHITUSKEELUVOOND → SHORE_BUILDING_EXCLUSION,
+  MALESTISE_KAITSEVOOND → HERITAGE_PROTECTION, LOODUSKAITSELINE_PIIRANG → NATURE_PROTECTION.
+  Any other type is shown with `restrictionTypeCode: null` and `rule: null`.
+- **Demo plots:** `78401:101:0123` matches the demo pre-check (power line and local road).
+  `78401:102:0045` has a shore zone, a type we have no rule for and hidden restrictions.
+  `79501:001:0001` has no restrictions. `99999:999:9999` makes the register answer 503,
+  so the check gives 502. Any other well-formed code is 404.
+- **Rule list sort keys:** `restrictionTypeCode`, `validFrom`, `validUntil` (prefix `-` for
+  descending). An unknown key is a 400.
+- **Open for the pre-check step:** `pre_check_restriction.restriction_type_code` is required,
+  but a register type with no counterpart has no code. Saving such a restriction needs either
+  a nullable column (a new changeset) or a catch-all type such as `OTHER`.
+
 **Failure policy:** **fail closed** for the check — without the register there
 is nothing to explain, so the owner gets 502 "register unavailable, try again"
 and no partial answer. Everything else (rules, saved pre-checks, the report)
