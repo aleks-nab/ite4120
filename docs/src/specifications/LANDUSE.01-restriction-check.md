@@ -137,7 +137,27 @@ restrictions looks complete and could mislead an owner into building.
 
 ## UI  *(→ session 4)*
 
-To be written.
+Two forms: the plot check (landowner) and the rule form (rule editor). Both use only endpoints that already exist.
+
+| Screen | Element | Component | Rules |
+| --- | --- | --- | --- |
+| Plot check `/landuse/check` | cadastral number | `Input` | required; format NNNNN:NNN:NNNN checked in the form; hint "e.g. 78401:101:0123" |
+| | check button | `AppButtonPrimary` | calls GET /api/landuse/plots/{cadastralCode}/restrictions |
+| | plot summary | `AppCard` | cadastral number, plot area m² |
+| | incomplete result | antd `Alert` (warning) | when registerComplete is false |
+| | restrictions | antd `Table` | type, name, owner of the restricting object, legal basis, affected area m² and % of the plot |
+| | rule | expandable row | forbidden, allowed with consent, consent party, legal basis |
+| | no rule | text in the expanded row | "Explanation not available" + the register's legal basis |
+| | register down | antd `Alert` (error) + retry | 502 "Register unavailable, try again"; no partial list |
+| Rule list `/landuse/rules` | table | `ResourceList` | type (link to the rule page), forbidden, consent party, valid from, valid until; filter by type and valid-on date |
+| Rule form `/landuse/rules/new`, `/landuse/rules/{id}` | restriction type | `Select` | required, options from /restriction-types |
+| | forbidden | `Input.TextArea` | required, ≤2000 |
+| | allowed with consent | `Input.TextArea` | optional, ≤2000 |
+| | consent party | `Input` | optional, ≤255 |
+| | legal basis | `Input` | required, ≤500 |
+| | valid from / valid until | `DateField` as in AnimalDetail.tsx | from required; until not before from |
+| | save / retire | `AppButtonPrimary` / button with confirmation | POST 201 or PUT; soft DELETE 204; 400 text shown verbatim |
+| | metadata | `ResourceForm.sidebar` | sys columns, read-only |
 
 ## Business tests
 
