@@ -50,3 +50,10 @@ animals:
     url: http://localhost:18440/mock-registry
     # The built-in imitated registry; enabled only in the local profile.
     mock-server: false
+
+landuse:
+  restriction-register:
+    # Plain HTTPS+JSON in the shape of KPOIS kyKitsendusedAvalik.
+    url: http://localhost:18440/mock-registry/kpois
+    # The built-in imitated register; enabled only in the local profile.
+    mock-server: false

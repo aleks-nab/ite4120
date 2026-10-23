@@ -7,3 +7,7 @@ auth:
 animals:
   owner-registry:
     mock-server: true      # this app serves /mock-registry itself — works offline
+
+landuse:
+  restriction-register:
+    mock-server: true      # this app serves /mock-registry/kpois itself — works offline
