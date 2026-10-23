@@ -156,7 +156,7 @@ Two forms: the plot check (landowner) and the rule form (rule editor). Both use 
 | | consent party | `Input` | optional, ≤255 |
 | | legal basis | `Input` | required, ≤500 |
 | | valid from / valid until | `DateField` as in AnimalDetail.tsx | from required; until not before from |
-| | save / retire | `AppButtonPrimary` / button with confirmation | POST 201 or PUT; soft DELETE 204; 400 text shown verbatim |
+| | save / retire | `AppButtonPrimary` / Retire in the ⋯ (More actions) menu in edit mode, with confirmation, as on the animal page | POST 201 or PUT; soft DELETE 204; 400 text shown verbatim |
 | | metadata | `ResourceForm.sidebar` | sys columns, read-only |
 
 ## Business tests
