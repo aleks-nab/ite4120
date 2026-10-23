@@ -180,5 +180,6 @@ Two forms: the plot check (landowner) and the rule form (rule editor). Both use 
    retired and replaced by rule R2, then the pre-check still shows R.
 6. **The register being down never produces a partial answer.**
    Given the restrictions register does not answer, when the owner checks
-   `78401:101:0123`, then the answer is 502 with "register unavailable, try
-   again" and no restrictions are listed.
+   `99999:999:9999` (the demo plot for which the imitated register answers 503,
+   simulating the register being down), then the answer is 502 with "register
+   unavailable, try again" and no restrictions are listed.
