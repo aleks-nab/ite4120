@@ -7,6 +7,7 @@ import { AnimalDetail } from './pages/AnimalDetail';
 import { PlotCheck } from './pages/PlotCheck';
 import { RuleList } from './pages/RuleList';
 import { RuleDetail } from './pages/RuleDetail';
+import { CoverageReport } from './pages/CoverageReport';
 
 /** Top-level navigation: one entry per page family; the active one is matched by path prefix. */
 const NAV_ITEMS = [
@@ -46,6 +47,8 @@ export const App = () => {
         <Route path="/animals/:id" element={<AnimalDetail />} />
         <Route path="/landuse/check" element={<PlotCheck />} />
         <Route path="/landuse/rules" element={<RuleList />} />
+        {/* A static segment, so it outranks :id below; keeps "Restriction rules" highlighted. */}
+        <Route path="/landuse/rules/coverage-report" element={<CoverageReport />} />
         {/* Also serves /landuse/rules/new — RuleDetail opens in create mode for id "new". */}
         <Route path="/landuse/rules/:id" element={<RuleDetail />} />
         {componentRoutes}

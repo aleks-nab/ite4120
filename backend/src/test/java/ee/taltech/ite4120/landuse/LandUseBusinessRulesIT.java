@@ -10,6 +10,9 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.time.LocalDate;
+import java.util.HashMap;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
@@ -182,6 +185,52 @@ class LandUseBusinessRulesIT {
         assertThat(powerLine.path("rule").isObject()).as("rule attached").isTrue();
         assertThat(powerLine.path("rule").path("restrictionTypeCode").asText()).isEqualTo("POWER_LINE_ZONE");
         assertThat(powerLine.path("rule").path("forbidden").asText()).isNotBlank();
+    }
+
+    @Test
+    void theCoverageReportListsEveryRestrictionTypeEvenWithoutRulesOrPreChecks() throws Exception {
+        // Given the demo data (rules for power line, shore and road; one pre-check today with power line and road),
+        // when the report is asked for a period that contains today
+        LocalDate today = LocalDate.now();
+        HttpResponse<String> response = send(HttpRequest.newBuilder(uri(
+                "/api/landuse/reports/restriction-summary?from=" + today.minusDays(30) + "&to=" + today)).GET());
+
+        // Then every one of the six restriction types has exactly one row
+        assertThat(response.statusCode()).isEqualTo(200);
+        JsonNode rows = json.readTree(response.body());
+        Map<String, JsonNode> byType = new HashMap<>();
+        for (JsonNode row : rows) {
+            assertThat(byType.put(row.path("typeCode").asText(), row)).as("one row per type").isNull();
+        }
+        assertThat(byType.keySet()).containsExactlyInAnyOrder(
+                "POWER_LINE_ZONE", "GAS_PIPELINE_ZONE", "ROAD_PROTECTION_ZONE",
+                "SHORE_BUILDING_EXCLUSION", "HERITAGE_PROTECTION", "NATURE_PROTECTION");
+
+        // A type with a rule in force and a pre-check in the period
+        JsonNode power = byType.get("POWER_LINE_ZONE");
+        assertThat(power.path("typeName").asText()).isNotBlank();
+        assertThat(power.path("ruleInForce").asBoolean()).isTrue();
+        assertThat(power.path("consentParty").asText()).isEqualTo("Owner of the power line (network operator)");
+        assertThat(power.path("preCheckCount").asLong()).isGreaterThanOrEqualTo(1);
+        assertThat(power.path("latestPreCheck").asText()).isEqualTo(today.toString());
+
+        // A type with no rule and no pre-check is still there, with zeros — an answer, not a missing row
+        JsonNode heritage = byType.get("HERITAGE_PROTECTION");
+        assertThat(heritage.path("ruleInForce").asBoolean()).isFalse();
+        assertThat(heritage.path("consentParty").isNull()).isTrue();
+        assertThat(heritage.path("preCheckCount").asLong()).isZero();
+        assertThat(heritage.path("latestPreCheck").isNull()).isTrue();
+    }
+
+    @Test
+    void theCoverageReportRefusesAPeriodThatEndsBeforeItStarts() throws Exception {
+        HttpResponse<String> response = send(HttpRequest.newBuilder(uri(
+                "/api/landuse/reports/restriction-summary?from=2026-10-01&to=2026-09-01")).GET());
+
+        assertThat(response.statusCode()).isEqualTo(400);
+        assertThat(response.headers().firstValue("Content-Type")).hasValueSatisfying(
+                ct -> assertThat(ct).startsWith("application/problem+json"));
+        assertThat(response.body()).contains("to must not be before from");
     }
 
     private static int freePort() {

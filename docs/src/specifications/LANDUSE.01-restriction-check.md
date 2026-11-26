@@ -90,7 +90,7 @@ Base path `/api/landuse`. A cadastral code in a path is sent as is
 | `GET /api/landuse/pre-checks` | paged list: `status`, `limit`, `offset`, `sort` | — |
 | `GET /api/landuse/pre-checks/{id}` | one pre-check with its restrictions and the rules shown | 404 |
 | `PUT /api/landuse/pre-checks/{id}/answer` | officer's answer: status ANSWERED + comment | 400 empty comment · 404 · 409 already answered |
-| `GET /api/landuse/reports/restriction-summary` | count of pre-checks per restriction type and per consent party, `from`–`to` | 400 `to` before `from` |
+| `GET /api/landuse/reports/restriction-summary?from=&to=` | coverage report: one row per restriction type with its rule in force today, that rule's consent party, and the pre-checks saved `from`–`to` that showed the type | 400 `to` before `from` |
 | `GET /mock-registry/kpois/restrictions/{cadastralCode}` | **the imitated restrictions register** (local profile only), answering in the shape of KPOIS `kyKitsendusedAvalik`: per restriction `nahtuseLiik`, `nimi`, `seaduslikAlus`, `kpoOmanik`, `pindala`; a few fixed demo plots | 404 unknown plot |
 
 Every error is `application/problem+json`. All `/api/**` endpoints require
@@ -125,6 +125,19 @@ and legal basis and no rule.
   so the check gives 502. Any other well-formed code is 404.
 - **Rule list sort keys:** `restrictionTypeCode`, `validFrom`, `validUntil` (prefix `-` for
   descending). An unknown key is a 400.
+- **Coverage report** *(settled in session 5)*: `from` and `to` are required dates
+  (`YYYY-MM-DD`, both inclusive); `to` before `from` is a 400 "to must not be before from".
+  The answer is an array with **one row per `restriction_type`**, ordered by name:
+  `{typeCode, typeName, ruleInForce, consentParty, preCheckCount, latestPreCheck}`.
+  It is a single SQL query (`ReportRepository`) over all four tables, starting from
+  `restriction_type` with LEFT JOINs only, so a type with no rule and no pre-checks still
+  appears as `ruleInForce: false, consentParty: null, preCheckCount: 0, latestPreCheck: null`
+  — that row is an answer, not a missing row. The rule in force is chosen as for the check
+  (valid today, latest start wins), through a lateral join so a type never gets two rows.
+  A pre-check is dated by the day it was saved (`sys_created_at`); `preCheckCount` counts
+  distinct pre-checks, and the period filter sits in the join condition, not in `WHERE`.
+  This replaces the earlier "per consent party" wording: the consent party is a column of
+  the per-type row.
 - **Open for the pre-check step:** `pre_check_restriction.restriction_type_code` is required,
   but a register type with no counterpart has no code. Saving such a restriction needs either
   a nullable column (a new changeset) or a catch-all type such as `OTHER`.
@@ -137,7 +150,7 @@ restrictions looks complete and could mislead an owner into building.
 
 ## UI  *(→ session 4)*
 
-Two forms: the plot check (landowner) and the rule form (rule editor). Both use only endpoints that already exist.
+Two forms: the plot check (landowner) and the rule form (rule editor), plus the coverage report opened from the rule list. All use only endpoints that already exist.
 
 | Screen | Element | Component | Rules |
 | --- | --- | --- | --- |
@@ -150,6 +163,11 @@ Two forms: the plot check (landowner) and the rule form (rule editor). Both use 
 | | no rule | text in the expanded row | "Explanation not available" + the register's legal basis |
 | | register down | antd `Alert` (error) + retry | 502 "Register unavailable, try again"; no partial list |
 | Rule list `/landuse/rules` | table | `ResourceList` | type (link to the rule page), forbidden, consent party, valid from, valid until; filter by type and valid-on date |
+| | coverage report button | `AppButtonSecondary` | "Coverage report", next to "Add rule"; opens the coverage report |
+| Coverage report `/landuse/rules/coverage-report` | period | antd `DatePicker.RangePicker` | pre-checks saved from–to; default 1 January of the current year up to today |
+| | report | antd `Table`, no paging | GET /api/landuse/reports/restriction-summary; code, restriction type, rule in force today (Yes/No), consent party, pre-checks in period, latest pre-check; one row per type |
+| | explanation | text under the table | one sentence: a row with "No" and 0 means no rule in force and no pre-check in the period — the answer, not missing data |
+| | back | `AppButtonSecondary` | "Back to rules" |
 | Rule form `/landuse/rules/new`, `/landuse/rules/{id}` | restriction type | `Select` | required, options from /restriction-types |
 | | forbidden | `Input.TextArea` | required, ≤2000 |
 | | allowed with consent | `Input.TextArea` | optional, ≤2000 |

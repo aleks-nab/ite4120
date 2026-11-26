@@ -55,6 +55,16 @@ export interface PlotCheck {
   restrictions: PlotRestriction[];
 }
 
+/** One row of the coverage report — every restriction type has one, zeros included. */
+export interface RestrictionSummaryRow {
+  typeCode: string;
+  typeName: string;
+  ruleInForce: boolean;
+  consentParty: string | null;
+  preCheckCount: number;
+  latestPreCheck: string | null;
+}
+
 // A function, not a constant: the signed-in mock user is read per request.
 const json = () => ({ ...authHeaders(), 'Content-Type': 'application/json' });
 
@@ -92,6 +102,12 @@ export const landuseApi = {
     fetch(`/api/landuse/rules/${id}`, { method: 'PUT', headers: json(), body: JSON.stringify(body) }).then((r) =>
       handle<RestrictionRule>(r),
     ),
+
+  /** The coverage report for pre-checks saved from–to (YYYY-MM-DD); 400 when to is before from. */
+  restrictionSummary: (from: string, to: string): Promise<RestrictionSummaryRow[]> =>
+    fetch(`/api/landuse/reports/restriction-summary?${new URLSearchParams({ from, to })}`, {
+      headers: authHeaders(),
+    }).then((r) => handle<RestrictionSummaryRow[]>(r)),
 
   /** DELETE — a soft delete: 204. */
   retireRule: (id: number): Promise<void> =>

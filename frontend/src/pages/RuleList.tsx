@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { DatePicker, Form, Select } from 'antd';
+import { DatePicker, Form, Select, Space } from 'antd';
 import type { Dayjs } from 'dayjs';
 import { PlusOutlined } from '@ant-design/icons';
 import {
   AppButtonPrimary,
+  AppButtonSecondary,
   AppLink,
   ResourceList,
   useAppNotification,
@@ -109,9 +110,12 @@ export const RuleList = () => {
         ),
       }}
       actions={
-        <AppButtonPrimary icon={<PlusOutlined />} onClick={() => navigate('/landuse/rules/new')}>
-          Add rule
-        </AppButtonPrimary>
+        <Space>
+          <AppButtonSecondary onClick={() => navigate('/landuse/rules/coverage-report')}>Coverage report</AppButtonSecondary>
+          <AppButtonPrimary icon={<PlusOutlined />} onClick={() => navigate('/landuse/rules/new')}>
+            Add rule
+          </AppButtonPrimary>
+        </Space>
       }
     />
   );
