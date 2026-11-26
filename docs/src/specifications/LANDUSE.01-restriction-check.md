@@ -23,7 +23,7 @@ catalogue (the first version covers the most common restriction types only).
 ## Data model  *(→ session 2)*
 
 Schema `landuse` (changesets `landuse-schema`, 01–04, 90 demo). One reference
-table, three business tables, five foreign keys.
+table, three business tables, four foreign keys.
 
 | Table | Field | Type | Rules |
 | --- | --- | --- | --- |
