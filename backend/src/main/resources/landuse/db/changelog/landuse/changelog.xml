@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  The landuse component changelog: land use restriction check (LANDUSE.01).
+  Released changesets are immutable: to change a table, append a new file.
+-->
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+  http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.27.xsd">
+
+  <include file="landuse/db/changelog/landuse/landuse-schema.sql"/>
+  <include file="landuse/db/changelog/landuse/01-restriction-type.sql"/>
+  <include file="landuse/db/changelog/landuse/02-restriction-rule.sql"/>
+  <include file="landuse/db/changelog/landuse/03-pre-check.sql"/>
+  <include file="landuse/db/changelog/landuse/04-pre-check-restriction.sql"/>
+  <include file="landuse/db/changelog/landuse/90-demo-data.sql"/>
+
+</databaseChangeLog>
