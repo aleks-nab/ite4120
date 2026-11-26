@@ -154,6 +154,10 @@ Two forms: the plot check (landowner) and the rule form (rule editor), plus the 
 
 | Screen | Element | Component | Rules |
 | --- | --- | --- | --- |
+| App shell (every page) | start page | router redirect | `/` opens `/landuse/check` |
+| | page header | antd `Typography.Title` | "Land use restrictions · LANDUSE" |
+| | info line | antd `Typography.Text` (secondary) | "Restrictions come from an imitated KPOIS register; rules are demo data, legal references to be verified." |
+| | top menu | `AppNavMenu` | Plot check · Restriction rules · Coverage report · Animals (example) — the animals worked example stays, last; the longest matching path is highlighted |
 | Plot check `/landuse/check` | cadastral number | `Input` | required; format NNNNN:NNN:NNNN checked in the form; hint "e.g. 78401:101:0123" |
 | | check button | `AppButtonPrimary` | calls GET /api/landuse/plots/{cadastralCode}/restrictions |
 | | plot summary | `AppCard` | cadastral number, plot area m² |

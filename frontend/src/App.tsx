@@ -1,5 +1,6 @@
 import type { ReactElement } from 'react';
 import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
+import { Typography } from 'antd';
 import { AppNavMenu } from '@helex/ui';
 import { AnimalList } from './pages/AnimalList';
 import { AnimalCreate } from './pages/AnimalCreate';
@@ -9,11 +10,16 @@ import { RuleList } from './pages/RuleList';
 import { RuleDetail } from './pages/RuleDetail';
 import { CoverageReport } from './pages/CoverageReport';
 
-/** Top-level navigation: one entry per page family; the active one is matched by path prefix. */
+/**
+ * Top-level navigation: land use first, the animals worked example kept last.
+ * The active entry is the LONGEST matching path prefix, so the coverage report
+ * (under /landuse/rules/) highlights itself, not "Restriction rules".
+ */
 const NAV_ITEMS = [
-  { key: '/animals', label: 'Animals' },
   { key: '/landuse/check', label: 'Plot check' },
   { key: '/landuse/rules', label: 'Restriction rules' },
+  { key: '/landuse/rules/coverage-report', label: 'Coverage report' },
+  { key: '/animals', label: 'Animals (example)' },
 ];
 
 /**
@@ -30,10 +36,21 @@ const componentRoutes = Object.values(
 export const App = () => {
   const navigate = useNavigate();
   const { pathname } = useLocation();
-  const active = NAV_ITEMS.filter((i) => pathname.startsWith(i.key)).map((i) => i.key);
+  const active = NAV_ITEMS.filter((i) => pathname.startsWith(i.key))
+    .sort((a, b) => b.key.length - a.key.length)
+    .slice(0, 1)
+    .map((i) => i.key);
 
   return (
     <>
+      <div style={{ padding: '12px 24px 0' }}>
+        <Typography.Title level={4} style={{ margin: 0 }}>
+          Land use restrictions · LANDUSE
+        </Typography.Title>
+        <Typography.Text type="secondary">
+          Restrictions come from an imitated KPOIS register; rules are demo data, legal references to be verified.
+        </Typography.Text>
+      </div>
       <AppNavMenu
         mode="horizontal"
         selectedKeys={active}
@@ -41,7 +58,7 @@ export const App = () => {
         items={NAV_ITEMS}
       />
       <Routes>
-        <Route path="/" element={<Navigate to="/animals" replace />} />
+        <Route path="/" element={<Navigate to="/landuse/check" replace />} />
         <Route path="/animals" element={<AnimalList />} />
         <Route path="/animals/new" element={<AnimalCreate />} />
         <Route path="/animals/:id" element={<AnimalDetail />} />
